@@ -17,6 +17,20 @@ L’animale selezionato deve essere aggiunto all’interno della lista <ul> come
 
 Obiettivo: L’utente può vedere gli animali aggiunti dinamicamente nella lista. -->
 
+<!--📌 Milestone 3: Usare una Modale per Aggiungere Animali
+
+
+La vecchia prop content può essere usata per passare un componente qualsiasi.
+Un nuovo div in fondo alla modale contiene il bottone Annulla e un nuovo bottone Conferma.
+Una nuova prop onConfirm si aspetta una funzione per gestire l’azione di conferma.
+Sostituisci l’aggiunta casuale dell’animale con una modale interattiva:
+Cliccando il bottone "Aggiungi Animale," si apre una modale.
+La modale include un input di testo (passato al prop content) per inserire il nome di un animale.
+Conferma: Aggiunge l’animale alla lista e chiude la modale.
+Annulla: Chiude la modale senza modificare la lista.
+
+Obiettivo: L’utente può aggiungere animali specifici utilizzando la modale.-->
+
 <!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
@@ -39,6 +53,31 @@ Obiettivo: L’utente può vedere gli animali aggiunti dinamicamente nella lista
     <script type="text/babel">
       const { useState } = React;
 
+      function Modal({
+        title,
+        content,
+        show = false,
+        onClose = () => {},
+        onConfirm = () => {},
+      }) {
+        return (
+          show &&
+          ReactDOM.createPortal(
+            <div className="modal-container">
+              <div className="modal">
+                <h2>{title}</h2>
+                {content}
+                <div>
+                  <button onClick={onClose}>Annulla</button>
+                  <button onClick={onConfirm}>conferma</button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        );
+      }
+
       const ListaAnimali = () => {
         const animalsChoices = [
           "Cane",
@@ -48,15 +87,21 @@ Obiettivo: L’utente può vedere gli animali aggiunti dinamicamente nella lista
           "Panda",
         ];
         const [animals, setAnimals] = useState([]);
+        const [show, setShow] = useState(false);
+        const [animalQuery, setAnimalQuery] = useState("");
 
         const addAnimal = () => {
-          const randomIndex = Math.floor(Math.random() * animalsChoices.length);
-          const randomAnimal = animalsChoices[randomIndex];
-          setAnimals((curr) => [...curr, randomAnimal]);
+          if (!animalQuery) return;
+          setAnimals((curr) => [...curr, animalQuery]);
+          setAnimalQuery("");
+          setShow(false);
         };
+
         return (
           <>
-            <button onClick={addAnimal}>Aggiungi Animali all'elenco</button>
+            <button onClick={() => setShow(true)}>
+              Aggiungi Animali all'elenco
+            </button>
             <details>
               <summary>Animali</summary>
               <ul>
@@ -65,6 +110,19 @@ Obiettivo: L’utente può vedere gli animali aggiunti dinamicamente nella lista
                 ))}
               </ul>
             </details>
+            <Modal
+              show={show}
+              onClose={() => setShow(false)}
+              title="Aggiugni Animale"
+              content={
+                <input
+                  type="text"
+                  value={animalQuery}
+                  onChange={(e) => setAnimalQuery(e.target.value)}
+                />
+              }
+              onConfirm={addAnimal}
+            />
           </>
         );
       };
