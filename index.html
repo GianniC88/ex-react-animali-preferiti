@@ -132,19 +132,29 @@ Obiettivo: Permetti agli utenti di aggiungere animali specifici utilizzando l'AP
           setIsLoading(true);
 
           try {
-            console.log("cercando", animalName);
             const response = await fetch(
               `http://localhost:3333/animals?search=${animalName}`
             );
 
-            const [animal] = await response.json();
+            const data = await response.json();
+            const animalData = data[0];
 
-            if (!animal) {
+            if (!animalData) {
               throw new Error("Nessun Animale Trovato");
             }
+            const animal = {
+              name: animalData.name || "Nome inesistente",
+              description: animalData.description || "descrizioni non presenti",
+              image: animalData.image || null,
+            };
+            setAnimals((curr) => [...curr, animal]);
             console.log("Animale trovato:", animal);
           } catch (err) {
             console.error(err);
+          } finally {
+            setIsLoading(false);
+            setAnimalName("");
+            setShow(false);
           }
         };
 
@@ -155,11 +165,21 @@ Obiettivo: Permetti agli utenti di aggiungere animali specifici utilizzando l'AP
             </button>
             <details>
               <summary>Animali</summary>
-              <ul>
+              <div>
                 {animals.map((animal, i) => (
-                  <li key={i}>{animal}</li>
+                  <div key={i} className="card">
+                    <div>
+                      <h3>{animal.name}</h3>
+                      <p>{animal.description}</p>
+                    </div>
+                    {animal.image && (
+                      <figure>
+                        <img src={animal.image} alt={animal.name} />
+                      </figure>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </details>
             <Modal
               show={show}
@@ -167,16 +187,15 @@ Obiettivo: Permetti agli utenti di aggiungere animali specifici utilizzando l'AP
               onConfirm={addAnimal}
               title="Aggiungi Animale"
               content={
-                isLoading ? (
-                  <p>Caricamento...</p>
-                ) : (
+                <>
                   <input
                     type="text"
                     value={animalName}
                     onChange={(e) => setAnimalName(e.target.value)}
                     placeholder="nome dell'animale"
                   />
-                )
+                  {isLoading && <p>Caricamento del risultato...</p>}
+                </>
               }
             />
           </>
